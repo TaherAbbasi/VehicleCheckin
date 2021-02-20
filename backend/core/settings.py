@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'checkin',
     'rest_framework.authtoken',
     'phonenumber_field',
+    # 'django-rest-swagger',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [

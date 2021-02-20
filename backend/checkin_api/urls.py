@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (PersonDetail, PersonList, VehicleDetail, VehicleList,
                     LogDetail, LogList, MissionDetail, MissionList)
-
+# from rest_framework_swagger.views import get_swagger_view
+# schema_view = get_swagger_view(title='Checkin API')
 app_name = 'checkin_api'
 
 urlpatterns = [
