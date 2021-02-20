@@ -27,7 +27,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'checkin_api',
+    'checkin',
     'rest_framework.authtoken',
+    'phonenumber_field',
 ]
 
 MIDDLEWARE = [

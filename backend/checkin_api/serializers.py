@@ -1,6 +1,6 @@
 from django.db.models import fields
 from rest_framework import serializers
-from .models import Person, Vehicle, Log, Mission
+from checkin.models import Person, Vehicle, Log, Mission
 
 class PersonSerializer(serializers.ModelSerializer):
     class Meta:

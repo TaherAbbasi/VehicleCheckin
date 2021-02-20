@@ -1,5 +1,5 @@
 from rest_framework import generics, serializers
-from .models import Person, Vehicle, Log, Mission
+from checkin.models import Person, Vehicle, Log, Mission
 from .serializers import PersonSerializer, VehicleSerializer, LogSerializer, MissionSerializer
 
 
