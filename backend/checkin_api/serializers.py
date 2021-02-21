@@ -1,8 +1,14 @@
 from django.db.models import fields
 from rest_framework import serializers
-from checkin.models import Person, Vehicle, Log, Mission
+from checkin.models import Person, VehicleType, Vehicle, Log, Mission
 
 class PersonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VehicleType
+        fields = '__all__'
+
+
+class VehicleTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Person
         fields = '__all__'
