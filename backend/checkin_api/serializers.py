@@ -1,16 +1,16 @@
 from django.db.models import fields
 from rest_framework import serializers
-from checkin.models import Person, VehicleType, Vehicle, Log, Mission
+from checkin.models import Person, VehicleType, Vehicle, Log, Absence, Shift
 
 class PersonSerializer(serializers.ModelSerializer):
     class Meta:
-        model = VehicleType
+        model = Person
         fields = '__all__'
 
 
 class VehicleTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Person
+        model = VehicleType
         fields = '__all__'
 
 
@@ -21,12 +21,27 @@ class VehicleSerializer(serializers.ModelSerializer):
 
 
 class LogSerializer(serializers.ModelSerializer):
+    vehicle = VehicleSerializer(read_only=True)
     class Meta:
         model = Log
-        fields = '__all__'
+        fields = ['log_datetime', 'direction', 'vehicle']
 
 
-class MissionSerializer(serializers.ModelSerializer):
+class AbsenceSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Mission
+        model = Absence
         fields = '__all__'
+
+
+class ShiftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shift
+        fields = '__all__'
+    
+    def create(self, validated_data):
+        shift = Shift(**validated_data)
+        try:
+            shift.save()
+        except:
+            raise serializers.ValidationError("Times are not correct")
+        return shift
