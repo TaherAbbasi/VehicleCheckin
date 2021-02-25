@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (PersonViewSet, ShiftViewSet, VehicleTypeViewSet, VehicleViewSet,
-                    LogViewSet, AbsenceViewSet, ShiftViewSet )
+                    LogViewSet, AbsenceViewSet, ShiftViewSet, FullLogList)
 
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
@@ -16,7 +16,7 @@ router.register('shifts', ShiftViewSet, basename='shift')
 app_name = 'checkin_api'
 
 urlpatterns = [
-    
+        path('fulllog/', FullLogList.as_view(), name='fullloglist' ),
 ]
 
 urlpatterns += router.urls

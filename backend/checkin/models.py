@@ -6,7 +6,7 @@ from django.db.models.fields import BooleanField
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import CheckConstraint, Q, F
-
+import django
 
 class Person(models.Model):
     
@@ -57,7 +57,7 @@ class Shift(models.Model):
             ),
         ]
     
-    def __str__(self) -> str:
+    def __str__(self):
         return self.name
 
 
@@ -76,7 +76,7 @@ class Vehicle(models.Model):
     intelligent_card_exp = models.DateField(verbose_name='Intelligent Card Exp.')
     health_card_exp = models.DateField(verbose_name='Health Card Exp.')
     inspection_exp = models.DateField(verbose_name='Inspection Exp.')
-    shift = models.ManyToManyField(Shift)
+    shifts = models.ManyToManyField(Shift)
 
     def __str__(self):
         return f'{str(self.plate_no)}'
@@ -87,7 +87,7 @@ class Log(models.Model):
     options = (('enter', 'Enter'),
                 ('exit', 'Exit'),
                 )
-    log_datetime = models.DateTimeField(default=datetime.now(), null=False, blank=False, verbose_name='Log Time')
+    log_datetime = models.DateTimeField(default=django.utils.timezone.now, null=False, blank=False, verbose_name='Log Time')
     vehicle = models.ForeignKey(
         Vehicle, on_delete=models.PROTECT, null=False, blank=False,
         )
@@ -96,6 +96,8 @@ class Log(models.Model):
     )
     class Meta:
         ordering = ["-log_datetime"]
+        unique_together = ('log_datetime', 'vehicle',)
+
     
     def __str__(self):
         enter_or_exit = 'Entered at' if self.direction=='enter' else 'Exited at'
@@ -125,7 +127,7 @@ class Absence(models.Model):
             name='to_datetime_gt_than_from_datetime')
         ]
     
-    def __str__(self) -> str:
+    def __str__(self):
         return f'{self.vehicle}_{str(self.from_datetime.date())}\
             {str(self.from_datetime.time())}_{str(self.to_datetime.date())}\
             {str(self.to_datetime.time())}'
