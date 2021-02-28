@@ -122,6 +122,7 @@ STATIC_URL = '/static/'
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DATETIME_FORMAT': "%Y-%m-%dT%H:%M:00",
+    'DATE_FORMAT': "%Y-%m-%d",
 }
 
 # REST_FRAMEWORK = {

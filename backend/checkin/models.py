@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.enums import Choices
@@ -87,7 +87,8 @@ class Log(models.Model):
     options = (('enter', 'Enter'),
                 ('exit', 'Exit'),
                 )
-    log_datetime = models.DateTimeField(default=django.utils.timezone.now, null=False, blank=False, verbose_name='Log Time')
+    log_date = models.DateField(default=datetime.now().strftime("%Y-%m-%d") , null=False, blank=False, verbose_name='Log Date')
+    log_time = models.TimeField(default=datetime.now().strftime("%H:%M:%S") , null=False, blank=False, verbose_name='Log Time')
     vehicle = models.ForeignKey(
         Vehicle, on_delete=models.PROTECT, null=False, blank=False,
         )
@@ -95,14 +96,14 @@ class Log(models.Model):
             max_length=10, choices=options, null=False, blank=False
     )
     class Meta:
-        ordering = ["-log_datetime"]
-        unique_together = ('log_datetime', 'vehicle',)
+        ordering = ["-log_date", '-log_time']
+        unique_together = ('log_date', 'log_time', 'vehicle',)
 
     
     def __str__(self):
         enter_or_exit = 'Entered at' if self.direction=='enter' else 'Exited at'
-        return f'{self.vehicle} {enter_or_exit} {str(self.log_datetime.date())}\
-        {str(self.log_datetime.time())}'
+        return f'{self.vehicle} {enter_or_exit} {str(self.log_date)}\
+        {str(self.log_time)}'
 
 
 class Absence(models.Model):

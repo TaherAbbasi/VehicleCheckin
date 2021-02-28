@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
-from rest_framework import generics, serializers, viewsets, filters
+from django.db.models.base import Model
+
+from rest_framework import generics, viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_list_or_404, get_object_or_404
@@ -40,6 +42,46 @@ class LogViewSet(viewsets.ModelViewSet):
     filterset = LogFilter
     ordering = ['direction','-log_datetime']
 
+    def create(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        plate = request.POST.get('vehicle')
+        direction = request.POST.get('direction')
+        if plate and (direction in ('enter', 'exit')):
+            vehicle = get_object_or_404(Vehicle, pk=plate)
+            shifts = VehicleSerializer(vehicle).data.get('shifts')
+            shifts = get_list_or_404(Shift, pk__in=shifts)
+            shifts = [ShiftSerializer(s).data for s in shifts]
+            log_time = request.POST.get('log_time')
+            if direction=='enter':
+                direction = 'entrance'
+            in_shift_range = False
+            is_log_unique = False
+            for s in shifts:
+                if (log_time > s[direction + '_low_range']) and \
+                   (log_time < s[direction + '_high_range']):
+                    in_shift_range = True
+                    log_date = request.POST.get('log_date')
+                    log = Log.objects.filter(log_date=log_date,
+                        log_time__gte=s[direction + '_low_range'],
+                        log_time__lte=s[direction + '_high_range']).first()
+                    if not log:
+                        is_log_unique = True
+                        break
+
+            data = serializer.validated_data
+            data['vehicle'] = plate
+            if (not in_shift_range):
+                data['Error'] = 'Not in shift range'    
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            if (not is_log_unique):
+                data['Error'] = 'Logged Before'
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
     # def list(self, request, *args, **kwargs):
     #     queryset = self.filter_queryset(self.get_queryset())
 
@@ -75,26 +117,31 @@ class FullLogList(generics.ListAPIView):
         plate = request.GET.get('plate')
         if plate:
             queryset = queryset.filter(vehicle=plate)
-            queryset_vehicle = Vehicle.objects.all()
             vehicle = get_object_or_404(Vehicle, pk=plate)
             
             shifts = VehicleSerializer(vehicle).data.get('shifts')
             shifts = get_list_or_404(Shift, pk__in=shifts)
             shifts = [ShiftSerializer(s).data for s in shifts]
             
-            absences = django.core.serializers.serialize('json', list(Absence.objects.filter(vehicle=plate)), fields=('absence_type', 'from_datetime', 'to_datetime'), ensure_ascii=False)
+            absences = django.core.serializers.serialize('json', 
+                list(Absence.objects.filter(vehicle=plate)), 
+                fields=('absence_type', 'from_datetime', 'to_datetime'),
+                ensure_ascii=False)
+            
             absences = json.loads(absences)
             absences = [a['fields'] for a in absences]
         
         from_datetime = request.GET.get('from_datetime')
         if from_datetime:
             from_datetime = parse_datetime(from_datetime)
-            queryset = queryset.filter(log_datetime__gte=from_datetime)
+            queryset = queryset.filter(log_date__gte=from_datetime.date())
+            queryset = queryset.filter(log_time__gte=from_datetime.time())
 
         to_datetime = request.GET.get('to_datetime')
         if to_datetime:
             to_datetime = parse_datetime(to_datetime)
-            queryset = queryset.filter(log_datetime__lte=to_datetime)
+            queryset = queryset.filter(log_date__lte=to_datetime.date())
+            queryset = queryset.filter(log_time__lte=to_datetime.time())
 
         logs = LogSerializer(queryset, many=True).data
         
